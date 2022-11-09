@@ -26,9 +26,11 @@ public class GeneratorScript : MonoBehaviour
         object_mesh = new Mesh();
         GetComponent<MeshFilter>().mesh = object_mesh;
 
-        CreatePlaneMesh();
+        StartCoroutine(CreatePlaneMesh());
         UpdateMesh();
     }
+
+
 
 
     void Update()
@@ -44,15 +46,14 @@ public class GeneratorScript : MonoBehaviour
             {
                 dimensions.y = 1;
             }
-            CreatePlaneMesh();
             UpdateMesh();
         }
     }
 
-    void CreatePlaneMesh()
-    {
+    IEnumerator CreatePlaneMesh()
+    {   
         object_vertices = new Vector3[((int)dimensions.x + 1) * ((int)dimensions.y + 1)];
-
+        
         for (int i = 0, z = 0; z <= (int)dimensions.y; z++)
         {
             for (int x = 0; x <= (int)dimensions.x; x++)
@@ -62,10 +63,29 @@ public class GeneratorScript : MonoBehaviour
             }
         }
 
-        object_triangles = new int[3];
-        object_triangles[0] = 0;
-        object_triangles[1] = (int)dimensions.x + 1;
-        object_triangles[2] = 1;
+        int vertices = 0;
+        int triangles = 0;
+        object_triangles = new int[(int)dimensions.x * (int)dimensions.x * 6];
+        
+        
+        for (int y = 0; y < (int)dimensions.y; y++)
+        {
+            for (int x = 0; x < (int)dimensions.x; x++)
+            {
+                object_triangles[triangles + 0] = vertices + 0;
+                object_triangles[triangles + 1] = vertices + (int)dimensions.x + 1;
+                object_triangles[triangles + 2] = vertices + 1;
+                object_triangles[triangles + 3] = vertices + 1;
+                object_triangles[triangles + 4] = vertices + (int)dimensions.x + 1;
+                object_triangles[triangles + 5] = vertices + (int)dimensions.x + 2;
+
+                vertices++;
+                triangles += 6;
+
+                yield return new WaitForSeconds(.01F);
+            }
+            vertices++;
+        }
     }
 
 
