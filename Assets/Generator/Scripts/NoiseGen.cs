@@ -23,6 +23,7 @@ public class NoiseGen : MonoBehaviour
             {
                 float scaledX = x / mapScale;
                 float scaledY = y / mapScale;
+
                 //Noise generated using scaled vectors
                 float noiseFactor = Mathf.PerlinNoise(scaledX, scaledY);
                 mapNoise[x, y] = noiseFactor;

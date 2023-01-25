@@ -5,8 +5,10 @@ using UnityEditor;
 
 public class MapGen : MonoBehaviour
 {
+    public bool updateInRealTime;
     public Vector2 dimensions; public float mapNoiseScale;
     Renderer noiseRenderer;
+
 
     //Generate TerrainObject. Will be the base for terrain generation
     public void GenPlane()
@@ -20,6 +22,8 @@ public class MapGen : MonoBehaviour
         noiseRenderer = mapPlane.GetComponent<Renderer>();
         GenMap();
     }
+
+
 
     public void Export()
     {
@@ -48,6 +52,13 @@ public class MapGen : MonoBehaviour
         NoiseDisplay noiseDisplay = new NoiseDisplay();
         noiseDisplay.RenderNoise(generatedMapNoise, noiseRenderer);
     }
+
+
+
+    private void Update()
+    {
+
+    }
 }
 
 [CustomEditor (typeof (MapGen)), CanEditMultipleObjects]
@@ -58,7 +69,13 @@ public class MapEditor : Editor
         MapGen mapGen;
         mapGen = (MapGen)target;
 
-        DrawDefaultInspector();
+        if (DrawDefaultInspector())
+        {  
+            if (mapGen.updateInRealTime)
+            {
+                mapGen.GenMap();
+            }
+        }
 
         if (GUILayout.Button("Generate Plane"))
         {
