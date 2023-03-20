@@ -5,8 +5,11 @@ using UnityEditor;
 
 public class TerrainGenerator : MonoBehaviour
 {
+    public GameObject treeParent;
+    public GameObject tree;
     public int terrainWidth;
     public int terrainHeight;
+    public float heightScalar;
     public MapAreas[] areas;
 
     [Header("Noise Variables")]
@@ -17,17 +20,25 @@ public class TerrainGenerator : MonoBehaviour
     [Range(0.001f, 20f)] public float noiseScale;
     public int seed = 0;
 
+    public AnimationCurve smoothingCurve;
+
     NoiseGenerator noiseGen;
+    public OceanFalloff falloff;
+    float[,] oceanFalloff;
 
 
     private void Start()
     {
         noiseGen = GetComponent<NoiseGenerator>();
+        oceanFalloff = falloff.GenOcean(terrainWidth, terrainHeight);
     }
+
+
 
 
     public void GenTerrain()
     {
+
         float[,] noise = NoiseGenerator.GenNoiseMap(noiseScale, terrainWidth, terrainHeight, octaves, persistance, lacrunarity, seed);
 
         Color[] colourMapping = new Color[terrainWidth * terrainHeight];
@@ -35,7 +46,10 @@ public class TerrainGenerator : MonoBehaviour
         {
             for (int x = 0; x < terrainWidth; x++)
             {
+                
+                noise[x, y] = noise[x, y] - (oceanFalloff[x, y] - 0.41f);
                 float height = noise[x, y];
+
                 for (int i = 0; i < areas.Length; i++)
                 {
                     if (height <= areas[i].height)
@@ -47,19 +61,45 @@ public class TerrainGenerator : MonoBehaviour
             }
         }
 
+        //PlaceTrees(noise, colourMapping, areas);
         Display display = FindObjectOfType<Display>();
-        display.Draw(TextureDisplay.ColourMap(colourMapping, terrainWidth, terrainHeight));
-        display.MeshDraw(MeshGen.MeshGenerate(noise), TextureDisplay.ColourMap(colourMapping, terrainWidth, terrainHeight));
-        //NoiseDisplay visualiser = FindObjectOfType<NoiseDisplay>();
-        //visualiser.GenTexture(noise);
+        //display.Draw(TextureDisplay.ColourMap(colourMapping, terrainWidth, terrainHeight));
+        //display.Draw(TextureDisplay.HeightMap(OceanFalloff.GenOcean(terrainHeight, terrainWidth)));
+        display.MeshDraw(MeshGen.MeshGenerate(noise, smoothingCurve, heightScalar), TextureDisplay.ColourMap(colourMapping, terrainWidth, terrainHeight));
     }
+
+
+    /*
+    public void PlaceTrees(float[,] heightmap, Color[] colourMapping, MapAreas[] regions)
+    {
+        int terrainWidth = heightmap.GetLength(0);
+        int terrainHeight = heightmap.GetLength(1);
+        for (int y = 0; y < terrainHeight; y++)
+        {
+            for (int x = 0; x < terrainWidth; x++)
+            {
+                if(colourMapping[y * terrainWidth + x] == regions[5].colour)
+                {
+                    if (terrainHeight > 0.5f)
+                    {
+                        GameObject placeTree = Instantiate(tree);
+                        placeTree.transform.parent = this.transform;
+                        placeTree.transform.localPosition = new Vector3(x * noiseScale, 0, y * noiseScale);
+                    }
+                }
+            }
+        }
+        this.transform.position = new Vector3(-2400, 0, -2400);
+        treeParent.transform.position.Scale(new Vector3(20, 20, 20));
+    }
+    */
 }
 
 
 
 public static class MeshGen
 {
-    public static Data MeshGenerate(float [,] heightMap)
+    public static Data MeshGenerate(float [,] heightMap, AnimationCurve smoothcurve, float scale)
     {
         int meshWidth = heightMap.GetLength(0);
         int meshHeight = heightMap.GetLength(1);
@@ -74,7 +114,7 @@ public static class MeshGen
         {
             for (int x = 0; x < meshHeight; x++)
             {
-                mData.vert[vertInd] = new Vector3(lX + x, heightMap[x, y], lY - y);
+                mData.vert[vertInd] = new Vector3(lX + x, smoothcurve.Evaluate(heightMap[x, y]) * scale, lY - y);
                 mData.uvs[vertInd] = new Vector2(x / (float)meshWidth, y / (float)meshHeight);
 
                 if (x < meshWidth - 1 && y < meshHeight - 1)

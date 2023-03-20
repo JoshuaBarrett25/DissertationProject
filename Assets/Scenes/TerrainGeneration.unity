@@ -792,6 +792,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   terrainWidth: 100
   terrainHeight: 100
+  heightScalar: 0
   areas:
   - name: DeepWater
     height: 0.43
@@ -823,6 +824,13 @@ MonoBehaviour:
   lacrunarity: 1.41
   noiseScale: 14.23
   seed: 1325
+  smoothingCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  falloff: {fileID: 0}
 --- !u!4 &1291484184
 Transform:
   m_ObjectHideFlags: 0
